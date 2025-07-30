@@ -1,10 +1,10 @@
-package com.plantas.registro_plantas;
+package com.perros.registro_perros;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class RegistroPlantasApplicationTests {
+class RegistroPerrosApplicationTests {
 
 	@Test
 	void contextLoads() {

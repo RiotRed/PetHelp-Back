@@ -1,6 +1,6 @@
 spring:
   r2dbc:
-    url: r2dbc:mysql://localhost:3306/pethelp
+    url: r2dbc:mysql://localhost:3306/pethelpbd
     username: root
     password: admin
   sql:

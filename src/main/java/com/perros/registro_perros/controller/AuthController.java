@@ -29,6 +29,29 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    // Endpoint de prueba para verificar conexión a BD
+    @GetMapping("/test")
+    public Mono<ResponseEntity<Map<String, Object>>> testConnection() {
+        logger.info("Probando conexión a la base de datos");
+        return usuarioService.findAll()
+                .collectList()
+                .map(usuarios -> {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("message", "Conexión exitosa");
+                    response.put("totalUsuarios", usuarios.size());
+                    response.put("status", "OK");
+                    logger.info("Conexión exitosa. Total usuarios: {}", usuarios.size());
+                    return ResponseEntity.ok(response);
+                })
+                .onErrorResume(e -> {
+                    logger.error("Error en conexión a BD", e);
+                    Map<String, Object> error = new HashMap<>();
+                    error.put("message", "Error de conexión: " + e.getMessage());
+                    error.put("status", "ERROR");
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error));
+                });
+    }
+
     @PostMapping("/login")
     public Mono<ResponseEntity<Map<String, Object>>> login(@RequestBody Map<String, String> body) {
         String email = body.get("email");

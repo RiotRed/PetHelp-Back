@@ -20,7 +20,7 @@ public class CorsGlobalConfiguration {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOriginPatterns("*")  // Cambiado de allowedOrigins a allowedOriginPatterns
+                        .allowedOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:4173")
                         .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true);
@@ -34,12 +34,19 @@ public class CorsGlobalConfiguration {
         return (ServerWebExchange ctx, org.springframework.web.server.WebFilterChain chain) -> {
             ServerHttpRequest request = ctx.getRequest();
             String origin = request.getHeaders().getOrigin();
-            if (origin != null) {
+            
+            // Solo permitir orígenes específicos
+            if (origin != null && (
+                origin.equals("http://localhost:3000") ||
+                origin.equals("http://localhost:5173") ||
+                origin.equals("http://localhost:4173")
+            )) {
                 ctx.getResponse().getHeaders().add("Access-Control-Allow-Origin", origin);
                 ctx.getResponse().getHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
                 ctx.getResponse().getHeaders().add("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
                 ctx.getResponse().getHeaders().add("Access-Control-Allow-Credentials", "true");
             }
+            
             if (request.getMethod() == HttpMethod.OPTIONS) {
                 ctx.getResponse().setStatusCode(org.springframework.http.HttpStatus.OK);
                 return Mono.empty();

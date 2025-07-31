@@ -1,6 +1,8 @@
 package com.perros.registro_perros.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.perros.registro_perros.model.Perro;
@@ -31,33 +33,53 @@ public class PerroController {
 
     // Público: Obtener un perro por ID
     @GetMapping("/{id}")
-    public Mono<Perro> obtenerPorId(@PathVariable Long id) {
-        return service.obtenerPorId(id);
+    public Mono<ResponseEntity<Perro>> obtenerPorId(@PathVariable Long id) {
+        return service.obtenerPorId(id)
+                .map(perro -> ResponseEntity.ok(perro))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     // Registrador: Registrar perros y sus dueños
     @PostMapping
-    public Mono<Perro> registrar(@RequestBody Perro perro, @RequestHeader("Authorization") String authHeader) {
-        String token = jwtUtil.extractTokenFromHeader(authHeader);
-        Long usuarioId = jwtUtil.extractUserId(token);
-        perro.setUsuarioId(usuarioId);
-        return service.registrar(perro);
+    public Mono<ResponseEntity<Perro>> registrar(@RequestBody Perro perro, @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            Long usuarioId = jwtUtil.extractUserId(token);
+            perro.setUsuarioId(usuarioId);
+            return service.registrar(perro)
+                    .map(savedPerro -> ResponseEntity.ok(savedPerro))
+                    .onErrorReturn(ResponseEntity.badRequest().build());
+        } catch (Exception e) {
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        }
     }
 
     // Registrador: Actualizar perro
     @PutMapping("/{id}")
-    public Mono<Perro> actualizar(@PathVariable Long id, @RequestBody Perro perro, @RequestHeader("Authorization") String authHeader) {
-        String token = jwtUtil.extractTokenFromHeader(authHeader);
-        Long usuarioId = jwtUtil.extractUserId(token);
-        return service.actualizar(id, usuarioId, perro);
+    public Mono<ResponseEntity<Perro>> actualizar(@PathVariable Long id, @RequestBody Perro perro, @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            Long usuarioId = jwtUtil.extractUserId(token);
+            return service.actualizar(id, usuarioId, perro)
+                    .map(updatedPerro -> ResponseEntity.ok(updatedPerro))
+                    .defaultIfEmpty(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        }
     }
 
     // Registrador: Eliminar perro
     @DeleteMapping("/{id}")
-    public Mono<Void> eliminar(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
-        String token = jwtUtil.extractTokenFromHeader(authHeader);
-        Long usuarioId = jwtUtil.extractUserId(token);
-        return service.eliminarPorUsuario(id, usuarioId);
+    public Mono<ResponseEntity<Void>> eliminar(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            Long usuarioId = jwtUtil.extractUserId(token);
+            return service.eliminarPorUsuario(id, usuarioId)
+                    .then(Mono.just(ResponseEntity.ok().<Void>build()))
+                    .defaultIfEmpty(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        }
     }
 
     // Público: Buscar perros por dueño (usando usuarioId)
@@ -102,24 +124,26 @@ public class PerroController {
 
     // Público: Obtener mapa de densidad canina
     @GetMapping("/densidad")
-    public Mono<Map<String, Object>> obtenerMapaDensidad() {
+    public Mono<ResponseEntity<Map<String, Object>>> obtenerMapaDensidad() {
         return service.listar()
                 .collectList()
                 .map(perros -> {
                     Map<String, Object> resultado = new HashMap<>();
                     Map<Long, Long> densidad = perros.stream()
+                            .filter(perro -> perro.getDistritoid() != null)
                             .collect(java.util.stream.Collectors.groupingBy(
                                     Perro::getDistritoid,
                                     java.util.stream.Collectors.counting()
                             ));
                     resultado.put("densidadPorDistrito", densidad);
-                    return resultado;
-                });
+                    return ResponseEntity.ok(resultado);
+                })
+                .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
 
     // Público: Obtener estadísticas generales
     @GetMapping("/estadisticas")
-    public Mono<Map<String, Object>> obtenerEstadisticasGenerales() {
+    public Mono<ResponseEntity<Map<String, Object>>> obtenerEstadisticasGenerales() {
         return service.listar()
                 .collectList()
                 .map(perros -> {
@@ -127,6 +151,7 @@ public class PerroController {
                     resultado.put("totalPerros", perros.size());
                     
                     Map<String, Long> porTamaño = perros.stream()
+                            .filter(perro -> perro.getTamanio() != null)
                             .collect(java.util.stream.Collectors.groupingBy(
                                     Perro::getTamanio,
                                     java.util.stream.Collectors.counting()
@@ -134,15 +159,15 @@ public class PerroController {
                     resultado.put("porTamaño", porTamaño);
                     
                     Map<String, Long> porComportamiento = perros.stream()
+                            .filter(perro -> perro.getComportamiento() != null)
                             .collect(java.util.stream.Collectors.groupingBy(
                                     Perro::getComportamiento,
                                     java.util.stream.Collectors.counting()
                             ));
                     resultado.put("porComportamiento", porComportamiento);
                     
-                    return resultado;
-                });
+                    return ResponseEntity.ok(resultado);
+                })
+                .onErrorReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
-
-
 } 

@@ -5,9 +5,12 @@ import org.springframework.web.bind.annotation.*;
 
 import com.perros.registro_perros.model.Incidente;
 import com.perros.registro_perros.service.IncidenteService;
+import com.perros.registro_perros.util.JwtUtil;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/incidentes")
@@ -16,49 +19,36 @@ public class IncidenteController {
     
     @Autowired
     private IncidenteService service;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    // Registrador: Reportar un incidente
-    @PostMapping
-    public Mono<Incidente> reportar(@RequestBody Incidente incidente, @RequestHeader("Authorization") String authHeader) {
-        Long usuarioId = extraerUsuarioId(authHeader);
-        incidente.setUsuarioId(usuarioId);
-        return service.registrar(incidente);
-    }
-
-    // Registrador: Listar todos los incidentes
+    // Público: Obtener todos los incidentes
     @GetMapping
     public Flux<Incidente> listarTodos() {
         return service.listarTodos();
     }
 
-    // Registrador: Listar incidentes por tipo
-    @GetMapping("/tipo/{tipo}")
-    public Flux<Incidente> listarPorTipo(@PathVariable String tipo) {
-        return service.listarPorTipo(tipo);
-    }
-
-    // Registrador: Listar incidentes por estado
-    @GetMapping("/estado/{estado}")
-    public Flux<Incidente> listarPorEstado(@PathVariable String estado) {
-        return service.listarPorEstado(estado);
-    }
-
-    // Registrador: Listar incidentes de un perro específico
-    @GetMapping("/perro/{perroId}")
-    public Flux<Incidente> listarPorPerro(@PathVariable Long perroId) {
-        return service.listarPorPerro(perroId);
-    }
-
-    // Registrador: Obtener incidente por ID
+    // Público: Obtener un incidente por ID
     @GetMapping("/{id}")
     public Mono<Incidente> obtenerPorId(@PathVariable Long id) {
         return service.obtenerPorId(id);
     }
 
-    // Registrador: Actualizar estado de incidente
+    // Registrador: Reportar un incidente
+    @PostMapping
+    public Mono<Incidente> reportar(@RequestBody Incidente incidente, @RequestHeader("Authorization") String authHeader) {
+        String token = jwtUtil.extractTokenFromHeader(authHeader);
+        Long usuarioId = jwtUtil.extractUserId(token);
+        incidente.setUsuarioId(usuarioId);
+        return service.registrar(incidente);
+    }
+
+    // Registrador: Actualizar incidente
     @PutMapping("/{id}")
     public Mono<Incidente> actualizar(@PathVariable Long id, @RequestBody Incidente incidente, @RequestHeader("Authorization") String authHeader) {
-        Long usuarioId = extraerUsuarioId(authHeader);
+        String token = jwtUtil.extractTokenFromHeader(authHeader);
+        Long usuarioId = jwtUtil.extractUserId(token);
         incidente.setUsuarioId(usuarioId);
         return service.actualizar(id, incidente);
     }
@@ -69,11 +59,50 @@ public class IncidenteController {
         return service.eliminar(id);
     }
 
-    private Long extraerUsuarioId(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer fake-jwt-token-")) {
-            throw new RuntimeException("Token inválido");
-        }
-        String idStr = authHeader.replace("Bearer fake-jwt-token-", "").trim();
-        return Long.parseLong(idStr);
+    // Público: Obtener estadísticas de incidentes
+    @GetMapping("/estadisticas")
+    public Mono<Map<String, Object>> obtenerEstadisticas() {
+        return service.listarTodos()
+                .collectList()
+                .map(incidentes -> {
+                    Map<String, Object> resultado = new HashMap<>();
+                    resultado.put("totalIncidentes", incidentes.size());
+                    
+                    Map<String, Long> porTipo = incidentes.stream()
+                            .collect(java.util.stream.Collectors.groupingBy(
+                                    Incidente::getTipo,
+                                    java.util.stream.Collectors.counting()
+                            ));
+                    resultado.put("porTipo", porTipo);
+                    
+                    Map<String, Long> porEstado = incidentes.stream()
+                            .collect(java.util.stream.Collectors.groupingBy(
+                                    Incidente::getEstado,
+                                    java.util.stream.Collectors.counting()
+                            ));
+                    resultado.put("porEstado", porEstado);
+                    
+                    return resultado;
+                });
     }
+
+    // Público: Listar incidentes por tipo
+    @GetMapping("/tipo")
+    public Flux<Incidente> listarPorTipo(@RequestParam String tipo) {
+        return service.listarPorTipo(tipo);
+    }
+
+    // Público: Listar incidentes por estado
+    @GetMapping("/estado")
+    public Flux<Incidente> listarPorEstado(@RequestParam String estado) {
+        return service.listarPorEstado(estado);
+    }
+
+    // Público: Listar incidentes de un perro específico
+    @GetMapping("/perro/{perroId}")
+    public Flux<Incidente> listarPorPerro(@PathVariable Long perroId) {
+        return service.listarPorPerro(perroId);
+    }
+
+
 } 

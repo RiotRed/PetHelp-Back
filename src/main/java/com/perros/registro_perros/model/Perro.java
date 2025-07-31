@@ -2,6 +2,7 @@ package com.perros.registro_perros.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Data
@@ -19,6 +20,7 @@ public class Perro {
     private Integer edad;
     private Boolean vacunado;
     private Boolean esterilizado;
+    @Column("usuarioId")
     private Long usuarioId;
     private String direccion;
 }

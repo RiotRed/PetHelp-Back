@@ -1,6 +1,6 @@
 spring:
   r2dbc:
-    url: r2dbc:mysql://localhost:3306/pethelpbd?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+    url: r2dbc:mysql://localhost:3306/pethelpbd
     username: root
     password: admin
   sql:
@@ -10,8 +10,5 @@ spring:
 logging:
   level:
     org.springframework.r2dbc: DEBUG
-    com.perros.registro_perros: DEBUG
-    org.springframework.web: DEBUG
-
 server:
   port: 8080

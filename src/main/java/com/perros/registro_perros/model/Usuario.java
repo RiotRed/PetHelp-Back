@@ -58,7 +58,4 @@ public class Usuario {
     public boolean isDueño() {
         return dueño;
     }
-    public void setDueño(boolean dueño) {
-        this.dueño = dueño;
-    }
 }

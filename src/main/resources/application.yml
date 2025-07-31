@@ -1,8 +1,8 @@
 spring:
   r2dbc:
-    url: r2dbc:mysql://localhost:3306/pethelpbd
+    url: r2dbc:mysql://mainline.proxy.rlwy.net:58888/railway
     username: root
-    password: admin
+    password: DvxvtXXjuhZcqpkQEYkzINSxJPaQNGPj
   sql:
     init:
       mode: always

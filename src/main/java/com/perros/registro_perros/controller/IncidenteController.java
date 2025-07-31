@@ -10,7 +10,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/api/incidentes")
+@RequestMapping("/api/incidente")
 @CrossOrigin(origins = "*")
 public class IncidenteController {
     

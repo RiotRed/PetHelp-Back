@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@Table("incidentes")
+@Table("incidente")
 public class Incidente {
     @Id
     private Long id;

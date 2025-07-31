@@ -10,7 +10,7 @@ import com.perros.registro_perros.handler.IncidenteHandler;
 
 @Configuration
 public class IncidenteRouter {
-    private static final String PATH = "/api/incidentes";
+    private static final String PATH = "/api/incidente";
 
     @Bean
     RouterFunction<ServerResponse> incidentesRouter(IncidenteHandler handler) {

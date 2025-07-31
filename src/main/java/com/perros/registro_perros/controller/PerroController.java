@@ -150,7 +150,6 @@ public class PerroController {
                     Map<String, Object> resultado = new HashMap<>();
                     resultado.put("totalPerros", perros.size());
                     
-                    // Estadísticas por tamaño (usando datos reales de la BD)
                     Map<String, Long> porTamaño = perros.stream()
                             .filter(perro -> perro.getTamanio() != null)
                             .collect(java.util.stream.Collectors.groupingBy(
@@ -159,7 +158,6 @@ public class PerroController {
                             ));
                     resultado.put("porTamaño", porTamaño);
                     
-                    // Estadísticas por comportamiento (usando datos reales de la BD)
                     Map<String, Long> porComportamiento = perros.stream()
                             .filter(perro -> perro.getComportamiento() != null)
                             .collect(java.util.stream.Collectors.groupingBy(
@@ -167,42 +165,6 @@ public class PerroController {
                                     java.util.stream.Collectors.counting()
                             ));
                     resultado.put("porComportamiento", porComportamiento);
-                    
-                    // Estadísticas por género
-                    Map<String, Long> porGenero = perros.stream()
-                            .filter(perro -> perro.getGenero() != null)
-                            .collect(java.util.stream.Collectors.groupingBy(
-                                    Perro::getGenero,
-                                    java.util.stream.Collectors.counting()
-                            ));
-                    resultado.put("porGenero", porGenero);
-                    
-                    // Estadísticas por color
-                    Map<String, Long> porColor = perros.stream()
-                            .filter(perro -> perro.getColor() != null)
-                            .collect(java.util.stream.Collectors.groupingBy(
-                                    Perro::getColor,
-                                    java.util.stream.Collectors.counting()
-                            ));
-                    resultado.put("porColor", porColor);
-                    
-                    // Estadísticas por estado de vacunación
-                    Map<String, Long> porVacunacion = perros.stream()
-                            .filter(perro -> perro.getVacunado() != null)
-                            .collect(java.util.stream.Collectors.groupingBy(
-                                    perro -> perro.getVacunado() ? "Vacunado" : "No vacunado",
-                                    java.util.stream.Collectors.counting()
-                            ));
-                    resultado.put("porVacunacion", porVacunacion);
-                    
-                    // Estadísticas por estado de esterilización
-                    Map<String, Long> porEsterilizacion = perros.stream()
-                            .filter(perro -> perro.getEsterilizado() != null)
-                            .collect(java.util.stream.Collectors.groupingBy(
-                                    perro -> perro.getEsterilizado() ? "Esterilizado" : "No esterilizado",
-                                    java.util.stream.Collectors.counting()
-                            ));
-                    resultado.put("porEsterilizacion", porEsterilizacion);
                     
                     return ResponseEntity.ok(resultado);
                 })

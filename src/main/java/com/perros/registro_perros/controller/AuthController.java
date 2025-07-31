@@ -13,15 +13,11 @@ import com.perros.registro_perros.service.UsuarioService;
 import com.perros.registro_perros.util.JwtUtil;
 
 import reactor.core.publisher.Mono;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
-
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private UsuarioService usuarioService;
@@ -33,8 +29,6 @@ public class AuthController {
     public Mono<ResponseEntity<Map<String, Object>>> login(@RequestBody Map<String, String> body) {
         String email = body.get("email");
         String password = body.get("password");
-
-        logger.info("Intento de login para email: {}", email);
 
         // Validaciones básicas
         if (email == null || email.trim().isEmpty()) {
@@ -51,7 +45,6 @@ public class AuthController {
 
         return usuarioService.findByEmail(email)
                 .flatMap(usuario -> {
-                    logger.info("Usuario encontrado: {}", usuario.getEmail());
                     if (usuario.getPassword().equals(password)) {
                         Map<String, Object> response = new HashMap<>();
                         response.put("token", jwtUtil.generateToken(usuario.getId()));
@@ -64,27 +57,18 @@ public class AuthController {
                         userInfo.put("dueño", usuario.isDueño());
                         
                         response.put("user", userInfo);
-                        logger.info("Login exitoso para usuario: {}", usuario.getEmail());
                         return Mono.just(ResponseEntity.ok(response));
                     } else {
-                        logger.warn("Contraseña incorrecta para usuario: {}", email);
                         Map<String, Object> error = new HashMap<>();
                         error.put("message", "Credenciales inválidas");
                         return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error));
                     }
                 })
                 .switchIfEmpty(Mono.defer(() -> {
-                    logger.warn("Usuario no encontrado: {}", email);
                     Map<String, Object> error = new HashMap<>();
                     error.put("message", "Usuario no encontrado");
                     return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(error));
-                }))
-                .onErrorResume(e -> {
-                    logger.error("Error en login para email: {}", email, e);
-                    Map<String, Object> error = new HashMap<>();
-                    error.put("message", "Error interno del servidor");
-                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error));
-                });
+                }));
     }
 
     @PostMapping("/register")
@@ -93,8 +77,6 @@ public class AuthController {
         String password = body.get("password");
         String nombre = body.get("nombre");
         String direccion = body.get("direccion");
-        
-        logger.info("Intento de registro para email: {}", email);
         
         // Validaciones básicas
         if (email == null || email.trim().isEmpty()) {
@@ -117,7 +99,6 @@ public class AuthController {
         
         return usuarioService.findByEmail(email)
             .flatMap(u -> {
-                logger.warn("Intento de registro con email ya existente: {}", email);
                 Map<String, Object> error = new HashMap<>();
                 error.put("message", "El correo ya está registrado");
                 return Mono.just(ResponseEntity.badRequest().body(error));
@@ -142,16 +123,9 @@ public class AuthController {
                     userInfo.put("dueño", usuario.isDueño());
                     
                     response.put("user", userInfo);
-                    logger.info("Registro exitoso para usuario: {}", usuario.getEmail());
                     return ResponseEntity.ok(response);
                 })
-            )
-            .onErrorResume(e -> {
-                logger.error("Error en registro para email: {}", email, e);
-                Map<String, Object> error = new HashMap<>();
-                error.put("message", "Error interno del servidor");
-                return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error));
-            });
+            );
     }
 
     @GetMapping("/validate")
@@ -176,7 +150,6 @@ public class AuthController {
                         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(error));
                     }));
         } catch (Exception e) {
-            logger.error("Error validando token", e);
             Map<String, Object> error = new HashMap<>();
             error.put("message", "Token inválido");
             return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error));

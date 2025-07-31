@@ -20,7 +20,11 @@ public class CorsGlobalConfiguration {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOriginPatterns("*")  // Cambiado de allowedOrigins a allowedOriginPatterns
+                        .allowedOrigins(
+                            "http://localhost:3000",
+                            "http://localhost:5173",
+                            "http://localhost:4173"
+                        )
                         .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true);

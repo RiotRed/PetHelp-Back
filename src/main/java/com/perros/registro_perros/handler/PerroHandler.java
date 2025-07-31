@@ -1,5 +1,6 @@
 package com.perros.registro_perros.handler;
 
+import com.perros.registro_perros.DTO.PerroConUsuarioDTO;
 import com.perros.registro_perros.model.Perro;
 import com.perros.registro_perros.service.PerroService;
 import lombok.RequiredArgsConstructor;
@@ -69,4 +70,10 @@ public class PerroHandler {
         String ip = request.remoteAddress().map(Object::toString).orElse("IP desconocida");
         log.info("Request {} {} desde {} - {}", method, path, ip, message);
     }
+
+    public Mono<ServerResponse> getPerrosConUsuario(ServerRequest request) {
+    Flux<PerroConUsuarioDTO> perros = perroService.findPerrosConUsuario();
+    return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(perros, PerroConUsuarioDTO.class);
+    }
+    
 }

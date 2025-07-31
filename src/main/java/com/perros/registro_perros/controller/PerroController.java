@@ -3,11 +3,14 @@ package com.perros.registro_perros.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import com.perros.registro_perros.DTO.PerroConUsuarioDTO;
 import com.perros.registro_perros.model.Perro;
 import com.perros.registro_perros.service.PerroService;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/perros")
@@ -17,7 +20,6 @@ public class PerroController {
     @Autowired
     private PerroService service;
 
-    // Registrador: Registrar perros y sus dueños
     @PostMapping
     public Mono<Perro> registrar(@RequestBody Perro perro, @RequestHeader("Authorization") String authHeader) {
         Long usuarioId = extraerUsuarioId(authHeader);
@@ -25,71 +27,60 @@ public class PerroController {
         return service.registrar(perro);
     }
 
-    // Registrador: Listar perros registrados por el usuario
     @GetMapping
     public Flux<Perro> listar(@RequestHeader("Authorization") String authHeader) {
         Long usuarioId = extraerUsuarioId(authHeader);
         return service.listarPorUsuario(usuarioId);
     }
 
-    // Público: Buscar perros por dueño
-    @GetMapping("/dueno/{dueno}")
-    public Flux<Perro> buscarPorDueno(@PathVariable String dueno) {
-        return service.listar()
-                .filter(perro -> perro.getDueño().toLowerCase().contains(dueno.toLowerCase()));
+    @GetMapping("/con-usuario")
+    public Flux<PerroConUsuarioDTO> listarConUsuario() {
+        return service.findPerrosConUsuario();
     }
 
-    // Público: Buscar perros por raza
     @GetMapping("/raza/{razaId}")
     public Flux<Perro> buscarPorRaza(@PathVariable Integer razaId) {
         return service.listar()
-                .filter(perro -> perro.getRazaid() == razaId);
+                .filter(perro -> Objects.equals(perro.getRazaid(), Long.valueOf(razaId)));
     }
 
-    // Público: Buscar perros por tamaño
     @GetMapping("/tamaño/{tamaño}")
-    public Flux<Perro> buscarPorTamaño(@PathVariable String tamaño) {
+    public Flux<Perro> buscarPorTamanio(@PathVariable String tamaño) {
         return service.listar()
-                .filter(perro -> perro.getTamaño().equalsIgnoreCase(tamaño));
+                .filter(perro -> perro.getTamanio() != null && perro.getTamanio().equalsIgnoreCase(tamaño));
     }
 
-    // Público: Buscar perros por comportamiento
     @GetMapping("/comportamiento/{comportamiento}")
     public Flux<Perro> buscarPorComportamiento(@PathVariable String comportamiento) {
         return service.listar()
-                .filter(perro -> perro.getComportamiento().equalsIgnoreCase(comportamiento));
+                .filter(perro -> perro.getComportamiento() != null && perro.getComportamiento().equalsIgnoreCase(comportamiento));
     }
 
-    // Público: Buscar perros por distrito
     @GetMapping("/distrito/{distritoId}")
     public Flux<Perro> buscarPorDistrito(@PathVariable Integer distritoId) {
         return service.listar()
-                .filter(perro -> perro.getDistritoid() == distritoId);
+                .filter(perro -> Objects.equals(perro.getDistritoid(), Long.valueOf(distritoId)));
     }
 
-    // Público: Obtener densidad canina por distrito
     @GetMapping("/densidad/distrito/{distritoId}")
     public Mono<Long> obtenerDensidadCanina(@PathVariable Integer distritoId) {
         return service.listar()
-                .filter(perro -> perro.getDistritoid() == distritoId)
+                .filter(perro -> Objects.equals(perro.getDistritoid(), Long.valueOf(distritoId)))
                 .count();
     }
 
-    // Registrador: Actualizar perro
     @PutMapping("/{id}")
     public Mono<Perro> actualizar(@PathVariable Long id, @RequestBody Perro perro, @RequestHeader("Authorization") String authHeader) {
         Long usuarioId = extraerUsuarioId(authHeader);
         return service.actualizar(id, usuarioId, perro);
     }
 
-    // Registrador: Eliminar perro
     @DeleteMapping("/{id}")
     public Mono<Void> eliminar(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
         Long usuarioId = extraerUsuarioId(authHeader);
         return service.eliminarPorUsuario(id, usuarioId);
     }
 
-    // Público: Obtener perro por ID
     @GetMapping("/{id}")
     public Mono<Perro> obtenerPorId(@PathVariable Long id) {
         return service.obtenerPorId(id);
@@ -102,4 +93,4 @@ public class PerroController {
         String idStr = authHeader.replace("Bearer fake-jwt-token-", "").trim();
         return Long.parseLong(idStr);
     }
-} 
+}

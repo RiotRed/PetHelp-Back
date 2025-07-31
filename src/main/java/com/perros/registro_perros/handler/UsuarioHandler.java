@@ -20,25 +20,31 @@ public class UsuarioHandler {
 
     public Mono<ServerResponse> getAll(ServerRequest request) {
         Flux<Usuario> usuarios = usuarioService.findAll();
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(usuarios, Usuario.class);
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(usuarios, Usuario.class);
     }
 
     public Mono<ServerResponse> getById(ServerRequest request) {
         Long id = Long.parseLong(request.pathVariable("id"));
         Mono<Usuario> usuario = usuarioService.findById(id);
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(usuario, Usuario.class);
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(usuario, Usuario.class);
     }
 
     public Mono<ServerResponse> save(ServerRequest request) {
-        Mono<Usuario> usuario = request.bodyToMono(Usuario.class);
-        return usuario.flatMap(u -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
+        Mono<Usuario> usuarioMono = request.bodyToMono(Usuario.class);
+        return usuarioMono.flatMap(u -> ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(usuarioService.save(u), Usuario.class));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
         Long id = Long.parseLong(request.pathVariable("id"));
         Mono<Usuario> usuarioMono = request.bodyToMono(Usuario.class);
-        return usuarioMono.flatMap(u -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
+        return usuarioMono.flatMap(u -> ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(usuarioService.update(id, u), Usuario.class));
     }
 

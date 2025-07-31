@@ -12,15 +12,16 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/estadisticas")
 @CrossOrigin(origins = "*")
 public class EstadisticasController {
-    
+
     @Autowired
     private PerroService perroService;
-    
+
     @Autowired
     private IncidenteService incidenteService;
 
@@ -31,7 +32,7 @@ public class EstadisticasController {
                 .collectList()
                 .map(perros -> {
                     Map<String, Object> resultado = new HashMap<>();
-                    Map<Integer, Long> densidad = perros.stream()
+                    Map<Long, Long> densidad = perros.stream()
                             .collect(Collectors.groupingBy(
                                     Perro::getDistritoid,
                                     Collectors.counting()
@@ -42,18 +43,18 @@ public class EstadisticasController {
     }
 
     // Público: Obtener estadísticas de perros por tamaño
-    @GetMapping("/perros-por-tamaño")
-    public Mono<Map<String, Object>> obtenerPerrosPorTamaño() {
+    @GetMapping("/perros-por-tamano")
+    public Mono<Map<String, Object>> obtenerPerrosPorTamano() {
         return perroService.listar()
                 .collectList()
                 .map(perros -> {
                     Map<String, Object> resultado = new HashMap<>();
-                    Map<String, Long> porTamaño = perros.stream()
+                    Map<String, Long> porTamano = perros.stream()
                             .collect(Collectors.groupingBy(
-                                    Perro::getTamaño,
+                                    Perro::getTamanio,
                                     Collectors.counting()
                             ));
-                    resultado.put("perrosPorTamaño", porTamaño);
+                    resultado.put("perrosPorTamano", porTamano);
                     return resultado;
                 });
     }
@@ -82,38 +83,21 @@ public class EstadisticasController {
                 .collectList()
                 .map(perros -> {
                     Map<String, Object> resultado = new HashMap<>();
-                    Map<Integer, Long> densidad = perros.stream()
+                    Map<Long, Long> densidad = perros.stream()
                             .collect(Collectors.groupingBy(
                                     Perro::getDistritoid,
                                     Collectors.counting()
                             ));
-                    
+
                     // Filtrar distritos con alta densidad (más de 10 perros)
-                    Map<Integer, Long> altaDensidad = densidad.entrySet().stream()
+                    Map<Long, Long> altaDensidad = densidad.entrySet().stream()
                             .filter(entry -> entry.getValue() > 10)
                             .collect(Collectors.toMap(
                                     Map.Entry::getKey,
                                     Map.Entry::getValue
                             ));
-                    
-                    resultado.put("zonasAltaDensidad", altaDensidad);
-                    return resultado;
-                });
-    }
 
-    // Público: Obtener perros por dueño
-    @GetMapping("/perros-por-dueno")
-    public Mono<Map<String, Object>> obtenerPerrosPorDueno() {
-        return perroService.listar()
-                .collectList()
-                .map(perros -> {
-                    Map<String, Object> resultado = new HashMap<>();
-                    Map<String, Long> porDueno = perros.stream()
-                            .collect(Collectors.groupingBy(
-                                    Perro::getDueño,
-                                    Collectors.counting()
-                            ));
-                    resultado.put("perrosPorDueno", porDueno);
+                    resultado.put("zonasAltaDensidad", altaDensidad);
                     return resultado;
                 });
     }
@@ -127,13 +111,15 @@ public class EstadisticasController {
                         .collectList()
                         .map(perros -> {
                             Map<String, Object> resultado = new HashMap<>();
-                            Map<Integer, Long> incidentesPorRaza = incidentes.stream()
+                            Map<Long, Long> incidentesPorRaza = incidentes.stream()
+                                    .map(incidente -> perros.stream()
+                                            .filter(p -> Objects.equals(p.getId(), incidente.getPerroId()))
+                                            .findFirst()
+                                            .map(Perro::getRazaid)
+                                            .orElse(null))
+                                    .filter(Objects::nonNull)
                                     .collect(Collectors.groupingBy(
-                                            incidente -> perros.stream()
-                                                    .filter(p -> p.getId().equals(incidente.getPerroId()))
-                                                    .findFirst()
-                                                    .map(Perro::getRazaid)
-                                                    .orElse(0),
+                                            razaId -> razaId,
                                             Collectors.counting()
                                     ));
                             resultado.put("razasConIncidentes", incidentesPorRaza);
@@ -157,4 +143,4 @@ public class EstadisticasController {
                     return resultado;
                 });
     }
-} 
+}

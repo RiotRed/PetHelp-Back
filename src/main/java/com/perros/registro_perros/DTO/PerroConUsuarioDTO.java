@@ -1,18 +1,16 @@
-package com.perros.registro_perros.model;
+package com.perros.registro_perros.DTO;
 
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
 
 @Data
-@Table("perros")
-public class Perro {
-    @Id
+public class PerroConUsuarioDTO {
     private Long id;
     private String nombre;
+    private String dueño;
+    private String emailDueño;
     private Long distritoid;
-    private Long razaid;
-    private String tamanio;
+    private Long razaId;
+    private String tamaño;
     private String comportamiento;
     private String color;
     private String genero;

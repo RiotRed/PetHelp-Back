@@ -2,8 +2,11 @@ package com.perros.registro_perros.service;
 
 import org.springframework.stereotype.Service;
 
+import com.perros.registro_perros.DTO.PerroConUsuarioDTO;
 import com.perros.registro_perros.model.Perro;
+import com.perros.registro_perros.model.Usuario;
 import com.perros.registro_perros.repository.PerroRepository;
+import com.perros.registro_perros.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -14,13 +17,10 @@ import reactor.core.publisher.Mono;
 public class PerroService {
 
     private final PerroRepository repo;
+    private final UsuarioRepository usuarioRepository;
 
     public Flux<Perro> listar() {
         return repo.findAll();
-    }
-
-    public Mono<Perro> registrar(Perro h) {
-        return repo.save(h);
     }
 
     public Mono<Void> eliminar(Long id) {
@@ -39,11 +39,9 @@ public class PerroService {
         return repo.findByIdAndUsuarioId(id, usuarioId)
             .flatMap(perro -> {
                 perro.setNombre(nuevoPerro.getNombre());
-                perro.setDueño(nuevoPerro.getDueño());
-                perro.setEmailDueño(nuevoPerro.getEmailDueño());
                 perro.setDistritoid(nuevoPerro.getDistritoid());
                 perro.setRazaid(nuevoPerro.getRazaid());
-                perro.setTamaño(nuevoPerro.getTamaño());
+                perro.setTamanio(nuevoPerro.getTamanio());
                 perro.setComportamiento(nuevoPerro.getComportamiento());
                 perro.setColor(nuevoPerro.getColor());
                 perro.setGenero(nuevoPerro.getGenero());
@@ -57,6 +55,48 @@ public class PerroService {
 
     public Mono<Void> eliminarPorUsuario(Long id, Long usuarioId) {
         return repo.findByIdAndUsuarioId(id, usuarioId)
-            .flatMap(hierba -> repo.deleteById(hierba.getId()));
+            .flatMap(perro -> repo.deleteById(perro.getId()));
+    }
+
+    public Mono<Perro> registrar(Perro perro) {
+        return repo.save(perro);
+    }
+
+    public Flux<PerroConUsuarioDTO> findPerrosConUsuario() {
+        return repo.findAll()
+            .flatMap(perro -> {
+                Mono<Usuario> usuarioMono = perro.getUsuarioId() != null
+                        ? usuarioRepository.findById(perro.getUsuarioId())
+                        : Mono.empty();
+
+                return usuarioMono
+                        .map(usuario -> mapToDto(perro, usuario))
+                        .defaultIfEmpty(mapToDto(perro, null));
+            });
+    }
+
+    private PerroConUsuarioDTO mapToDto(Perro perro, Usuario usuario) {
+    PerroConUsuarioDTO dto = new PerroConUsuarioDTO();
+    dto.setId(perro.getId());
+    dto.setNombre(perro.getNombre());
+    dto.setDistritoid(perro.getDistritoid());
+    dto.setRazaId(perro.getRazaid());
+    dto.setTamaño(perro.getTamanio());         // 👈 Aquí
+    dto.setComportamiento(perro.getComportamiento());
+    dto.setColor(perro.getColor());
+    dto.setGenero(perro.getGenero());
+    dto.setEdad(perro.getEdad());
+    dto.setVacunado(perro.getVacunado());
+    dto.setEsterilizado(perro.getEsterilizado());
+    dto.setUsuarioId(perro.getUsuarioId());   // 👈 Aquí también
+    dto.setDireccion(perro.getDireccion());
+
+    if (usuario != null) {
+        dto.setDueño(usuario.getNombre());
+        dto.setEmailDueño(usuario.getEmail());
+    }
+
+    return dto;
     }
 }
+

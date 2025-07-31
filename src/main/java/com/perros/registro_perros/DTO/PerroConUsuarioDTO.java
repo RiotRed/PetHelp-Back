@@ -6,11 +6,9 @@ import lombok.Data;
 public class PerroConUsuarioDTO {
     private Long id;
     private String nombre;
-    private String dueño;
-    private String emailDueño;
     private Long distritoid;
     private Long razaId;
-    private String tamaño;
+    private String tamanio;
     private String comportamiento;
     private String color;
     private String genero;

@@ -81,7 +81,7 @@ public class PerroService {
     dto.setNombre(perro.getNombre());
     dto.setDistritoid(perro.getDistritoid());
     dto.setRazaId(perro.getRazaid());
-    dto.setTamaño(perro.getTamanio());         // 👈 Aquí
+    dto.setTamanio(perro.getTamanio());         // 👈 Aquí
     dto.setComportamiento(perro.getComportamiento());
     dto.setColor(perro.getColor());
     dto.setGenero(perro.getGenero());
@@ -90,11 +90,6 @@ public class PerroService {
     dto.setEsterilizado(perro.getEsterilizado());
     dto.setUsuarioId(perro.getUsuarioId());   // 👈 Aquí también
     dto.setDireccion(perro.getDireccion());
-
-    if (usuario != null) {
-        dto.setDueño(usuario.getNombre());
-        dto.setEmailDueño(usuario.getEmail());
-    }
 
     return dto;
     }

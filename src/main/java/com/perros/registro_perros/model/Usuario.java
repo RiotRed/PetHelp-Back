@@ -25,6 +25,9 @@ public class Usuario {
     @Column("dueño")
     private boolean dueño;
 
+    @Column("profesion")
+    private String profesion;
+
     public Long getId() {
         return id;
     }
@@ -57,5 +60,11 @@ public class Usuario {
     }
     public boolean isDueño() {
         return dueño;
+    }
+    public void setProfesion(String profesion) {
+        this.profesion = profesion;
+    }
+    public String getProfesion() {
+        return profesion;
     }
 }

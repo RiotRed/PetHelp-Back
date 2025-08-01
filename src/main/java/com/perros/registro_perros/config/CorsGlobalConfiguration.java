@@ -16,7 +16,8 @@ public class CorsGlobalConfiguration {
                 registry.addMapping("/**")
                         .allowedOrigins(
                             "http://localhost:3000",
-                            "https://pethelpfront-n4pwofitc-alessandro-rojas-projects.vercel.app"
+                            "https://pethelpfront-n4pwofitc-alessandro-rojas-projects.vercel.app",
+                            "https://pethelpfront-40albx9lc-alessandro-rojas-projects.vercel.app"
                         )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
